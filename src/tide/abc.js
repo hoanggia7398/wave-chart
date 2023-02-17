@@ -5,11 +5,11 @@ const CurveChart = () => {
   const chartRef = useRef(null);
   const margin = { top: 20, right: 20, bottom: 30, left: 50 };
   const width = 600 - margin.left - margin.right;
-  const height = 300 - margin.top - margin.bottom;
+  const height = 600 - margin.top - margin.bottom;
 
   const data = [
     { x: 0, y: 0 },
-    { x: 5, y: 5 },
+    { x: 5, y: 10 },
     { x: 10, y: 0 },
   ];
 
@@ -54,6 +54,15 @@ const CurveChart = () => {
     };
   };
 
+  const getHeightofPoint = (yScale,data) => {
+    const listOfHeight = [];
+    data.forEach(item => {
+      const yPixel = yScale(item.y);
+      listOfHeight.push(yPixel);
+    });
+    return listOfHeight;
+  };
+
   const xScale = d3
     .scaleLinear()
     .domain(d3.extent(data, (d) => d.x))
@@ -67,38 +76,35 @@ const CurveChart = () => {
   useEffect(() => {
     const svg = d3.select(chartRef.current);
 
-    const xAxisY = yScale(0);
-    const point = { x: 5, y: 5 }; // example point
-    const yDistance = Math.abs(yScale(point.y) - xAxisY);
-    console.log(yDistance)
-    
+
     svg
       .append("g")
       .attr("transform", `translate(0,${height})`)
       .call(d3.axisBottom(xScale));
 
     svg.append("g").call(d3.axisLeft(yScale));
-    svg
-      .append("g")
-      .call(d3.axisLeft(yScale))
-      .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", "-3em")
-      .attr("text-anchor", "end")
-      .text("Y Values");
+    // svg
+    //   .append("g")
+    //   .call(d3.axisLeft(yScale))
+    //   .append("text")
+    //   .attr("transform", "rotate(-90)")
+    //   .attr("y", 6)
+    //   .attr("dy", "-3em")
+    //   .attr("text-anchor", "end")
+    //   .text("Y Values");
 
     const pointsOnCurve = getPointsOnCurve(0.003, data);
 
     svg
       .selectAll("circle")
-      .data(pointsOnCurve)
+      .data([{ x: 3, y: 5 }])
       .enter()
       .append("circle")
       .attr("cx", (d) => xScale(d.x))
       .attr("cy", (d) => yScale(d.y))
-      .attr("r", 1)
+      .attr("r", 3)
       .attr("fill", "red");
+    
   }, []);
 
   return (

@@ -54,9 +54,9 @@ function Tide() {
   return (
     <div>
       <TideContainer>
-        <WaveChart data={data2} />
+        {/* <WaveChart data={data2} /> */}
         {/* <TimeMark /> */}
-        {/* <CurveChart /> */}
+        <CurveChart />
       </TideContainer>
     </div>
   );
