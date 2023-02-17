@@ -15,6 +15,7 @@ const WaveChart = ({ data }) => {
   const margin = { top: 0, right: 0, bottom: 10, left: -10 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
+  const svg = d3.select(svgRef.current);
 
   useEffect(() => {
     if (waveData) {
@@ -55,7 +56,6 @@ const WaveChart = ({ data }) => {
   };
 
   const generateWave = (waveData) => {
-    const svg = d3.select(svgRef.current);
     const xScale = d3
       .scaleLinear()
       .domain([
@@ -80,60 +80,18 @@ const WaveChart = ({ data }) => {
     const timePerPixel = timeDifferenceInMinutes / distance;
     setMinPerPixel(timePerPixel);
     setInitialTime(waveData.tideData[0].time);
-    //wave
-    const waveAreaGenerator = d3
-      .area()
-      .x((d) => xScale(d.time))
-      .y0(chartHeight)
-      .y1((d) => yScale(d.point / 2))
-      .curve(d3.curveMonotoneX);
 
-    svg
-      .append("path")
-      .datum(waveData.tideData)
-      .attr("fill", "steelblue")
-      .attr("d", waveAreaGenerator)
-      .style("opacity", "0.2");
+    //wave
+    drawWave(xScale, yScale);
 
     // label
-    svg
-      .selectAll(".label")
-      .data(waveData.tideData)
-      .enter()
-      .append("text")
-      .attr("class", "label")
-      .attr("x", (d) => xScale(d.time))
-      .attr("y", (d) => yScale(d.point / 2))
-      .attr("dx", "1em")
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-      .text((d) => d.amountOfWater);
+    drawLabels(xScale, yScale);
+
     // add time
-    svg
-      .selectAll(".time-label")
-      .data(waveData.tideData)
-      .enter()
-      .append("text")
-      .attr("class", "time-label")
-      .attr("x", (d) => xScale(d.time))
-      .attr("y", (d) => yScale(d.point / 2))
-      .attr("dx", "1em")
-      .attr("dy", "-1em")
-      .style("text-anchor", "middle")
-      .text((d) => formatTime(d.time));
+    drawTimes(xScale, yScale);
 
     //day night range
-    waveData.dayNightData.forEach((data) => {
-      svg
-        .append("rect")
-        .datum(data)
-        .attr("x", (d) => xScale(d.startNight))
-        .attr("y", 0)
-        .attr("width", (d) => xScale(d.endNight) - xScale(d.startNight))
-        .attr("height", chartHeight)
-        .attr("fill", "gray")
-        .style("opacity", "0.3");
-    });
+    drawDayNightRanges(xScale);
 
     // sun line
     const sunLine = d3
@@ -150,18 +108,82 @@ const WaveChart = ({ data }) => {
       .attr("fill", "none")
       .attr("stroke", "orange");
 
-    const xValue = 1586789113;
-    const yValue = yScale.invert(sunLine(xValue));
-    const yPixelValue = yScale(79);
-    console.log(yPixelValue);
-    
+    svg
+      .selectAll(".line1")
+      .data(waveData.sunData.map(item => getPointsOnCurve(0.003, item)))
+      .join("path")
+      .attr("class", "line1")
+      .attr("d", (d) => sunLine(d))
+      .attr("fill", "none")
+      .attr("stroke", "red");
+    console.log(3)
   };
 
+  const drawDayNightRanges = (xScale) => {
+    waveData.dayNightData.forEach((data) => {
+      svg
+        .append("rect")
+        .datum(data)
+        .attr("x", (d) => xScale(d.startNight))
+        .attr("y", 0)
+        .attr("width", (d) => xScale(d.endNight) - xScale(d.startNight))
+        .attr("height", chartHeight)
+        .attr("fill", "gray")
+        .style("opacity", "0.3");
+    });
+  };
+
+  const drawTimes = (xScale, yScale) => {
+    svg
+      .selectAll(".time-label")
+      .data(waveData.tideData)
+      .enter()
+      .append("text")
+      .attr("class", "time-label")
+      .attr("x", (d) => xScale(d.time))
+      .attr("y", (d) => yScale(d.point / 2))
+      .attr("dx", "1em")
+      .attr("dy", "-1em")
+      .style("text-anchor", "middle")
+      .text((d) => formatTime(d.time));
+  };
+
+  const drawLabels = (xScale, yScale) => {
+    svg
+      .selectAll(".label")
+      .data(waveData.tideData)
+      .enter()
+      .append("text")
+      .attr("class", "label")
+      .attr("x", (d) => xScale(d.time))
+      .attr("y", (d) => yScale(d.point / 2))
+      .attr("dx", "1em")
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text((d) => d.amountOfWater);
+  };
+
+  const drawWave = (xScale, yScale) => {
+    const waveAreaGenerator = d3
+      .area()
+      .x((d) => xScale(d.time))
+      .y0(chartHeight)
+      .y1((d) => yScale(d.point / 2))
+      .curve(d3.curveMonotoneX);
+
+    svg
+      .append("path")
+      .datum(waveData.tideData)
+      .attr("fill", "steelblue")
+      .attr("d", waveAreaGenerator)
+      .style("opacity", "0.2");
+  };
   const generateWaveData = (data) => {
     let waveData = {};
     let tideData = [];
     let dayNightData = [];
     let sunData = [];
+    let sunData2;
 
     data.map((item, index) => {
       //tideData
@@ -205,6 +227,41 @@ const WaveChart = ({ data }) => {
       .utc()
       .format("hh:mm a");
     return timeFormated;
+  };
+
+  const getPointsOnCurve = (step, data) => {
+    let points = [];
+    for (let t = 0; t <= 1; t += step) {
+      const { x, y } = getBezierXY(
+        t,
+        data[0].x,
+        data[0].y,
+        data[1].x,
+        data[1].y,
+        data[2].x,
+        data[2].y,
+        data[2].x,
+        data[2].y
+      );
+      points.push({ x, y });
+    }
+    return points;
+  };
+
+  const getBezierXY = (t, sx, sy, cp1x, cp1y, cp2x, cp2y, ex, ey) => {
+    return {
+      x:
+        Math.pow(1 - t, 3) * sx +
+        3 * t * Math.pow(1 - t, 2) * cp1x +
+        3 * t * t * (1 - t) * cp2x +
+        t * t * t * ex,
+      y:
+        (Math.pow(1 - t, 3) * sy +
+          3 * t * Math.pow(1 - t, 2) * cp1y +
+          3 * t * t * (1 - t) * cp2y +
+          t * t * t * ey) *
+        2,
+    };
   };
 
   return (

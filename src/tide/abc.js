@@ -19,7 +19,7 @@ const CurveChart = () => {
     .y((d) => yScale(d.y))
     .curve(d3.curveMonotoneX);
 
-  const getPointsOnCurve = (step) => {
+  const getPointsOnCurve = (step, data) => {
     let points = [];
     for (let t = 0; t <= 1; t += step) {
       const { x, y } = getBezierXY(
@@ -46,10 +46,11 @@ const CurveChart = () => {
         3 * t * t * (1 - t) * cp2x +
         t * t * t * ex,
       y:
-        Math.pow(1 - t, 3) * sy +
-        3 * t * Math.pow(1 - t, 2) * cp1y +
-        3 * t * t * (1 - t) * cp2y +
-        t * t * t * ey,
+        (Math.pow(1 - t, 3) * sy +
+          3 * t * Math.pow(1 - t, 2) * cp1y +
+          3 * t * t * (1 - t) * cp2y +
+          t * t * t * ey) *
+        2,
     };
   };
 
@@ -62,9 +63,15 @@ const CurveChart = () => {
     .scaleLinear()
     .domain(d3.extent(data, (d) => d.y))
     .range([height, 0]);
+
   useEffect(() => {
     const svg = d3.select(chartRef.current);
 
+    const xAxisY = yScale(0);
+    const point = { x: 5, y: 5 }; // example point
+    const yDistance = Math.abs(yScale(point.y) - xAxisY);
+    console.log(yDistance)
+    
     svg
       .append("g")
       .attr("transform", `translate(0,${height})`)
@@ -80,16 +87,8 @@ const CurveChart = () => {
       .attr("dy", "-3em")
       .attr("text-anchor", "end")
       .text("Y Values");
-     svg
-      .append("path")
-      .datum(data)
-      .attr("class", "line")
-      .attr("d", line)
-      .attr("fill", "none")
-      .attr("stroke", "steelblue")
-      .attr("stroke-width", 2);
 
-    const pointsOnCurve = getPointsOnCurve(0.01);
+    const pointsOnCurve = getPointsOnCurve(0.003, data);
 
     svg
       .selectAll("circle")
@@ -98,7 +97,7 @@ const CurveChart = () => {
       .append("circle")
       .attr("cx", (d) => xScale(d.x))
       .attr("cy", (d) => yScale(d.y))
-      .attr("r", 2)
+      .attr("r", 1)
       .attr("fill", "red");
   }, []);
 
