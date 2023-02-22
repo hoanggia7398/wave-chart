@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import React from "react";
 import WaveChart from "./wave";
-import CurveChart from "./abc";
+import Header from "./header";
 
 function Tide() {
   const data2 = [
@@ -54,22 +54,13 @@ function Tide() {
   return (
     <div>
       <TideContainer>
-        {/* <WaveChart data={data2} /> */}
-        {/* <TimeMark /> */}
-        <CurveChart />
+        <Header />
+        <WaveChart data={data2} />
       </TideContainer>
     </div>
   );
 }
 
-const TideContainer = styled.div`
-  text-align: center;
-  margin-top: 200px;
-  width: auto;
-  height: auto;
-  position: relative;
-`;
-
-
+const TideContainer = styled.div``;
 
 export default Tide;
