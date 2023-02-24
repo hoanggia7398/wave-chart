@@ -40,17 +40,6 @@ const WaveChart = ({ data }) => {
     };
   }, [waveData, secondPerPixel, spanRef]);
 
-  // useLayoutEffect(() => {
-  //   stateRef.current = middleTime;
-  // }, [middleTime]);
-  // useLayoutEffect(() => {
-  //   document
-  //     .querySelector(".wave-container")
-  //     .addEventListener("scroll", testFunc);
-
-  //   return () => window.removeEventListener("scroll", testFunc);
-  // }, [middleTime]);
-
   const handleResize = () => {
     const spanRect = spanRef.current.getBoundingClientRect();
     const parentRect = spanRef.current.parentNode.getBoundingClientRect();
@@ -66,10 +55,6 @@ const WaveChart = ({ data }) => {
     checkSunShow();
     checkSunMove();
     onScrollPoint(middleTime);
-    console.log(formatTime(middleTime));
-    console.log("1", formatTime(middleTime));
-
-    // testFunc(middleTime);
   };
 
   const generateMiddleTime = (distanceToBorder) => {
@@ -110,10 +95,6 @@ const WaveChart = ({ data }) => {
     }
   };
 
-  const testFunc = () => {
-    console.log("mid1", formatTime(stateRef.current));
-  };
-
   const onScrollPoint = (middleTime) => {
     const xScale = d3
       .scaleLinear()
@@ -131,7 +112,6 @@ const WaveChart = ({ data }) => {
     const points = getPointsOnCurve(0.0001, waveData.sunData[0]);
     const points1 = getPointsOnCurve(0.0001, waveData.sunData[1]);
     const points2 = getPointsOnCurve(0.0001, waveData.sunData[2]);
-    // console.log("mid1", formatTime(middleTime));
     if (moveSun) {
       const closest = binarySearch(points, middleTime);
       const closest1 = binarySearch(points1, middleTime);
@@ -283,23 +263,26 @@ const WaveChart = ({ data }) => {
     const point = svg
       .append("circle")
       .attr("cx", (d) => xScale(waveData.sunData[0][0].x))
-      .attr("cy", (d) => yScale(-12))
-      .attr("r", 8)
-      .attr("fill", "#f88a02");
+      .attr("cy", (d) => yScale(0))
+      .attr("r", 10)
+      .attr("fill", "#f88a02")
+      .style("opacity", "0");
 
     const point1 = svg
       .append("circle")
       .attr("cx", (d) => xScale(waveData.sunData[1][0].x))
-      .attr("cy", (d) => yScale(-12))
-      .attr("r", 8)
-      .attr("fill", "#f88a02");
+      .attr("cy", (d) => yScale(0))
+      .attr("r", 10)
+      .attr("fill", "#f88a02")
+      .style("opacity", "0");
 
     const point2 = svg
       .append("circle")
       .attr("cx", (d) => xScale(waveData.sunData[2][0].x))
-      .attr("cy", (d) => yScale(-12))
-      .attr("r", 8)
-      .attr("fill", "#f88a02");
+      .attr("cy", (d) => yScale(0))
+      .attr("r", 10)
+      .attr("fill", "#f88a02")
+      .style("opacity", "0");
 
     pointRef.current = point;
     pointRef1.current = point1;
@@ -461,7 +444,7 @@ const TimeMarkLine = styled.div`
   position: absolute;
   height: 200px;
   bottom: 40px;
-  left: calc(50% - 2px);
+  left: calc(50% - 12px);
   z-index: 2;
 `;
 
@@ -472,7 +455,8 @@ const MoonWrapper = styled.div`
   background-color: yellow;
   position: absolute;
   bottom: 130px;
-  left: calc(50% - 11px);
+  left: calc(50% - 21px);
+  z-index: 2;
 `;
 
 const TimeMarkText = styled.span`
@@ -487,6 +471,7 @@ const DayMarkText = styled.span`
   bottom: 200px;
   left: 47%;
   font-size: 25px;
+  z-index: 2;
 `;
 const TimeLine = styled.div`
   width: 100%;
